@@ -1,0 +1,6 @@
+{
+"name":"ESP32 BLE",
+"short_name":"ESP32",
+"start_url":"./",
+"display":"standalone"
+}

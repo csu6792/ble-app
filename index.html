@@ -1,0 +1,130 @@
+<!doctype html>
+
+<html lang="zh-TW">
+
+<head>
+
+<meta charset="UTF-8">
+
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+
+<meta name="theme-color"
+content="#ffffff">
+
+
+<link rel="manifest"
+href="manifest.json">
+
+
+<title>
+ESP32 BLE Sensor
+</title>
+
+
+</head>
+
+
+<body>
+
+
+<h1>ESP32 Sensor</h1>
+
+
+<button onclick="connect()">
+連接裝置
+</button>
+
+
+<button onclick="disconnect()">
+斷線
+</button>
+
+
+<hr>
+
+
+<button onclick="led(true)">
+開燈
+</button>
+
+
+<button onclick="led(false)">
+關燈
+</button>
+
+
+
+<h2 id="status">
+狀態：未連線
+</h2>
+
+
+
+<h3>
+裝置資訊
+</h3>
+
+
+<div id="info">
+--
+</div>
+
+
+
+<br>
+
+
+
+<div>
+溫度：
+<span id="temp">
+--
+</span>
+°C
+</div>
+
+
+
+<div>
+濕度：
+<span id="hum">
+--
+</span>
+%
+</div>
+
+
+
+
+
+<script src="app.js"></script>
+
+
+
+<script>
+
+
+// PWA Service Worker
+
+if(
+"serviceWorker" in navigator
+)
+{
+
+navigator.serviceWorker.register(
+"sw.js"
+);
+
+}
+
+
+</script>
+
+
+
+</body>
+
+</html>
