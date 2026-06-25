@@ -1,115 +1,287 @@
 <!doctype html>
-
 <html lang="zh-TW">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ESP32 智慧物聯網控制台 - 教學版</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            
+            /* 狀態顏色 */
+            --success-bg: #dcfce7;
+            --success-text: #15803d;
+            --warning-bg: #fef9c3;
+            --warning-text: #a16207;
+            --danger-bg: #fee2e2;
+            --danger-text: #b91c1c;
+        }
 
-<meta charset="UTF-8">
+        body { 
+            margin: 0; padding: 0; 
+            background: var(--bg); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            color: var(--text-main); 
+            user-select: none; -webkit-user-select: none;
+        }
 
+        .header { 
+            background: var(--card-bg); 
+            color: var(--text-main); 
+            padding: 16px 24px; 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            position: sticky; top: 0; z-index: 100; 
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1">
+        .dashboard-container { 
+            padding: 20px; 
+            max-width: 1280px; 
+            margin: auto; 
+            display: grid; 
+            grid-template-columns: 1fr;
+            gap: 24px; 
+            box-sizing: border-box;
+        }
 
+        @media (min-width: 768px) {
+            .dashboard-container { grid-template-columns: repeat(2, 1fr); }
+            .full-width-md { grid-column: span 2; }
+        }
+        @media (min-width: 1024px) {
+            .dashboard-container { grid-template-columns: repeat(3, 1fr); }
+            .full-width-md { grid-column: span 1; }
+        }
 
-<meta name="theme-color"
-content="#ffffff">
+        /* 卡片設計加強邊框與陰影，提升層次感 */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 24px; 
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            display: flex; flex-direction: column; justify-content: flex-start;
+        }
+        
+        /* 教學專屬 UI 元素 */
+        .card-title { 
+            font-size: 1.1rem; color: var(--text-main); 
+            margin-top: 0; margin-bottom: 12px; 
+            font-weight: 700; display: flex; align-items: center; gap: 8px;
+        }
+        .step-badge {
+            background: var(--primary); color: white;
+            padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .edu-note {
+            background: #f1f5f9; border-left: 4px solid #94a3b8;
+            padding: 10px 14px; font-size: 0.85rem; color: var(--text-muted);
+            margin-bottom: 20px; border-radius: 0 8px 8px 0; line-height: 1.4;
+        }
+        .pin-badge {
+            background: #e2e8f0; color: #475569; font-family: monospace; font-weight: 600;
+            padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: auto;
+        }
 
+        /* 數據監測網格 */
+        .sensor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .sensor-box { background: #f8fafc; padding: 16px; border-radius: 12px; text-align: center; border: 1px dashed #cbd5e1; }
+        .sensor-value { font-size: 1.75rem; font-weight: 700; color: var(--primary); margin: 6px 0 2px; }
+        .sensor-label { font-size: 0.8rem; color: var(--text-main); font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 6px; }
 
-<link rel="manifest"
-href="manifest.json">
+        /* 控制清單 */
+        .control-list { display: flex; flex-direction: column; }
+        .control-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+        }
+        .control-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .control-label { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; flex: 1; }
+        
+        /* 雙態整合按鈕組 */
+        .btn-group { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-left: 10px;}
+        .btn-group .btn { border-radius: 0; border: none; padding: 8px 16px; font-size: 0.85rem; }
+        .btn-group .btn:first-child { border-right: 1px solid var(--border); }
 
+        /* 基礎按鈕 */
+        .btn { 
+            border: none; border-radius: 10px; padding: 12px 16px; 
+            font-size: 0.95rem; font-weight: 600; cursor: pointer; 
+            transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn:active { transform: scale(0.97); opacity: 0.9; }
+        
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: #f1f5f9; color: var(--text-main); width: 100%; border: 1px solid #e2e8f0; }
+        .btn-outline:hover { background: #e2e8f0; }
 
-<title>
-ESP32 BLE Sensor
-</title>
+        .btn-on { background: #e0e7ff; color: var(--primary); }
+        .btn-on:hover { background: #c7d2fe; }
+        .btn-off { background: #f8fafc; color: var(--text-muted); }
+        .btn-off:hover { background: #e2e8f0; }
 
+        /* 輸入元件 */
+        .input-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        input[type="text"] { 
+            width: 100%; box-sizing: border-box; padding: 12px; 
+            border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        input[type="color"] { width: 60px; height: 44px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; padding: 0; background: none; }
 
+        .status-badge { 
+            padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+            background: #e2e8f0; color: var(--text-muted); transition: all 0.25s ease;
+        }
+        .status-success { background: var(--success-bg); color: var(--success-text); }
+        .status-warning { background: var(--warning-bg); color: var(--warning-text); }
+        .status-danger { background: var(--danger-bg); color: var(--danger-text); }
+    </style>
 </head>
-
-
 <body>
 
+    <div class="header">
+        <div>ESP32 智慧物聯網控制台</div>
+        <span id="status" class="status-badge">狀態：未連線</span>
+    </div>
 
-<h1>ESP32 Sensor</h1>
+    <div class="dashboard-container">
+        
+        <div class="card full-width-md">
+            <h3 class="card-title"><span class="step-badge">Step 1</span> 🔗 設備通訊連結</h3>
+            <div class="edu-note">
+                <b>通訊初始化：</b> 網頁必須先建立連線（WebSocket / BLE 等），才能與微控制器進行雙向資料交換。
+            </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <button class="btn btn-primary" onclick="connect()">連接新裝置</button>
+                <button class="btn btn-outline" onclick="disconnect()">中斷</button>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px; display: flex; justify-content: space-between;">
+                <span>核心廣播名稱：<span id="info" style="font-family: monospace; font-weight: bold; color: var(--text-main);">--</span></span>
+            </div>
+        </div>
 
+        <div class="card">
+            <h3 class="card-title"><span class="step-badge">Step 2</span> 📊 讀取即時數據</h3>
+            <div class="edu-note">
+                <b>資料解析：</b> ESP32 將感測器數值傳遞至前端，透過 JavaScript 更新 DOM 元素顯示。
+            </div>
+            <div class="sensor-grid">
+                <div class="sensor-box">
+                    <div class="sensor-label">🌡️ 當前溫度 <span class="pin-badge">IN</span></div>
+                    <div class="sensor-value"><span id="temp">--</span><span style="font-size:0.9rem; font-weight:500;">°C</span></div>
+                </div>
+                <div class="sensor-box">
+                    <div class="sensor-label">💧 當前濕度 <span class="pin-badge">IN</span></div>
+                    <div class="sensor-value"><span id="hum">--</span><span style="font-size:0.9rem; font-weight:500;">%</span></div>
+                </div>
+                <div class="sensor-box">
+                    <div class="sensor-label">☀️ 光線感應 <span class="pin-badge">ADC</span></div>
+                    <div class="sensor-value"><span id="light">--</span></div>
+                </div>
+                <div class="sensor-box">
+                    <div class="sensor-label">🎛️ 旋鈕電阻 <span class="pin-badge">ADC</span></div>
+                    <div class="sensor-value"><span id="pot">--</span></div>
+                </div>
+                <div class="sensor-box" style="padding: 10px 5px;">
+                    <div class="sensor-label">🔘 實體按鍵 A</div>
+                    <div class="sensor-value" style="font-size: 1.1rem; margin: 10px 0 0;"><span id="btnA">--</span></div>
+                </div>
+                <div class="sensor-box" style="padding: 10px 5px;">
+                    <div class="sensor-label">🔘 實體按鍵 B</div>
+                    <div class="sensor-value" style="font-size: 1.1rem; margin: 10px 0 0;"><span id="btnB">--</span></div>
+                </div>
+            </div>
+        </div>
 
-<button onclick="connect()">
-連接裝置
-</button>
+        <div class="card">
+            <h3 class="card-title"><span class="step-badge">Step 3</span> 💡 模組開關控制</h3>
+            <div class="edu-note">
+                <b>指令下達：</b> 點擊按鈕會觸發 <code>sendCmd()</code> 函式，將字串指令發送給硬體執行動作。
+            </div>
+            <div class="control-list">
+                <div class="control-item">
+                    <span class="control-label">🔴 紅色指示燈 <span class="pin-badge">OUT</span></span>
+                    <div class="btn-group">
+                        <button class="btn btn-on" onclick="sendCmd('LED_R_ON')">開啟</button>
+                        <button class="btn btn-off" onclick="sendCmd('LED_R_OFF')">關閉</button>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <span class="control-label">🟡 黃色指示燈 <span class="pin-badge">OUT</span></span>
+                    <div class="btn-group">
+                        <button class="btn btn-on" onclick="sendCmd('LED_Y_ON')">開啟</button>
+                        <button class="btn btn-off" onclick="sendCmd('LED_Y_OFF')">關閉</button>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <span class="control-label">🟢 綠色指示燈 <span class="pin-badge">OUT</span></span>
+                    <div class="btn-group">
+                        <button class="btn btn-on" onclick="sendCmd('LED_G_ON')">開啟</button>
+                        <button class="btn btn-off" onclick="sendCmd('LED_G_OFF')">關閉</button>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <span class="control-label">⚡ 高壓繼電器 <span class="pin-badge">OUT</span></span>
+                    <div class="btn-group">
+                        <button class="btn btn-on" onclick="sendCmd('RELAY_ON')">ON</button>
+                        <button class="btn btn-off" onclick="sendCmd('RELAY_OFF')">OFF</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-outline" style="margin-top: 16px; width: 100%;" onclick="sendCmd('BUZZ_BEEP')">🎵 觸發蜂鳴器嗶聲</button>
+        </div>
 
+        <div class="card">
+            <h3 class="card-title"><span class="step-badge">Step 4</span> 🎨 進階週邊控制</h3>
+            <div class="edu-note">
+                <b>參數傳遞：</b> 讀取 HTML Input 欄位的值，打包後傳送給硬體進行顯示或 PWM 控制。
+            </div>
+            <div class="input-wrapper">
+                <label class="control-label" style="margin-bottom: -4px;">📟 OLED 螢幕文字 (限英數)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="oledInput" placeholder="輸入要發送的訊息...">
+                    <button class="btn btn-outline" style="width: auto; white-space: nowrap; background: white;" onclick="sendOLED()">傳送</button>
+                </div>
+                
+                <label class="control-label" style="margin-top: 10px; margin-bottom: -4px;">🌈 WS2812 幻彩燈條 (3顆)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="color" id="rgbInput" value="#4f46e5">
+                    <button class="btn btn-primary" onclick="sendRGB()">套用燈光顏色</button>
+                </div>
+            </div>
+        </div>
 
-<button onclick="disconnect()">
-斷線
-</button>
+    </div>
 
-
-<hr>
-
-
-<button onclick="led(true)">
-開燈
-</button>
-
-
-<button onclick="led(false)">
-關燈
-</button>
-
-
-
-<h2 id="status">
-狀態：未連線
-</h2>
-
-
-
-<h3>
-裝置資訊
-</h3>
-
-
-<div id="info">
---
-</div>
-
-
-
-<br>
-
-
-
-<div>
-溫度：
-<span id="temp">
---
-</span>
-°C
-</div>
-
-
-
-<div>
-濕度：
-<span id="hum">
---
-</span>
-%
-</div>
-
-
-
-
-
-<script src="app.js"></script>
-
-
-
-<script>
-
-
-// PWA Service Worker
-
-if(
+    <script src="app.js"></script>
+    
+    <script>
+        const statusEl = document.getElementById("status");
+        const observer = new MutationObserver(function() {
+            const txt = statusEl.innerText;
+            statusEl.className = "status-badge"; // 重設樣式
+            if (txt.includes("已就緒") || txt.includes("已連線")) {
+                statusEl.classList.add("status-success");
+            } else if (txt.includes("搜尋") || txt.includes("連線中")) {
+                statusEl.classList.add("status-warning");
+            } else if (txt.includes("錯誤") || txt.includes("斷線")) {
+                statusEl.classList.add("status-danger");
+            }
+        });
+        observer.observe(statusEl, { childList: true, characterData: true, subtree: true });
+		
+		if(
 "serviceWorker" in navigator
 )
 {
@@ -120,11 +292,6 @@ navigator.serviceWorker.register(
 
 }
 
-
-</script>
-
-
-
+    </script>
 </body>
-
 </html>
