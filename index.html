@@ -61,7 +61,6 @@
             .full-width-md { grid-column: span 1; }
         }
 
-        /* 卡片設計加強邊框與陰影，提升層次感 */
         .card { 
             background: var(--card-bg); 
             border-radius: 16px; 
@@ -71,7 +70,6 @@
             display: flex; flex-direction: column; justify-content: flex-start;
         }
         
-        /* 教學專屬 UI 元素 */
         .card-title { 
             font-size: 1.1rem; color: var(--text-main); 
             margin-top: 0; margin-bottom: 12px; 
@@ -92,13 +90,11 @@
             padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: auto;
         }
 
-        /* 數據監測網格 */
         .sensor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .sensor-box { background: #f8fafc; padding: 16px; border-radius: 12px; text-align: center; border: 1px dashed #cbd5e1; }
         .sensor-value { font-size: 1.75rem; font-weight: 700; color: var(--primary); margin: 6px 0 2px; }
         .sensor-label { font-size: 0.8rem; color: var(--text-main); font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 6px; }
 
-        /* 控制清單 */
         .control-list { display: flex; flex-direction: column; }
         .control-item { 
             display: flex; justify-content: space-between; align-items: center; 
@@ -107,12 +103,10 @@
         .control-item:last-child { border-bottom: none; padding-bottom: 0; }
         .control-label { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; flex: 1; }
         
-        /* 雙態整合按鈕組 */
         .btn-group { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-left: 10px;}
         .btn-group .btn { border-radius: 0; border: none; padding: 8px 16px; font-size: 0.85rem; }
         .btn-group .btn:first-child { border-right: 1px solid var(--border); }
 
-        /* 基礎按鈕 */
         .btn { 
             border: none; border-radius: 10px; padding: 12px 16px; 
             font-size: 0.95rem; font-weight: 600; cursor: pointer; 
@@ -123,20 +117,16 @@
         .btn-primary { background: var(--primary); color: white; width: 100%; }
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-outline { background: #f1f5f9; color: var(--text-main); width: 100%; border: 1px solid #e2e8f0; }
-        .btn-outline:hover { background: #e2e8f0; }
 
         .btn-on { background: #e0e7ff; color: var(--primary); }
-        .btn-on:hover { background: #c7d2fe; }
-        .btn-off { background: #f8fafc; color: var(--text-muted); }
-        .btn-off:hover { background: #e2e8f0; }
+        .btn-off { background: #f8fafc; color: var(--text-muted); border: 1px solid var(--border); }
 
-        /* 輸入元件 */
         .input-wrapper { display: flex; flex-direction: column; gap: 10px; }
-        input[type="text"] { 
+        input[type="text"], input[type="number"] { 
             width: 100%; box-sizing: border-box; padding: 12px; 
             border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; outline: none;
         }
-        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         input[type="color"] { width: 60px; height: 44px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; padding: 0; background: none; }
 
         .status-badge { 
@@ -185,8 +175,8 @@
                     <div class="sensor-label">💧 當前濕度 <span class="pin-badge">IN</span></div>
                     <div class="sensor-value"><span id="hum">--</span><span style="font-size:0.9rem; font-weight:500;">%</span></div>
                 </div>
-                <div class="sensor-box">
-                    <div class="sensor-label">☀️ 光線感應 <span class="pin-badge">ADC</span></div>
+                <div class="sensor-box" style="border: 2px solid var(--primary); background: #f5f3ff;">
+                    <div class="sensor-label" style="color: var(--primary);">☀️ 光線感應 <span class="pin-badge" style="background: var(--primary); color: white;">ADC</span></div>
                     <div class="sensor-value"><span id="light">--</span></div>
                 </div>
                 <div class="sensor-box">
@@ -204,8 +194,33 @@
             </div>
         </div>
 
+        <div class="card" style="border: 2px solid #10b981;">
+            <h3 class="card-title"><span class="step-badge" style="background: #10b981;">Mode</span> 🚙 智慧車燈大燈模式</h3>
+            <div class="edu-note" style="border-left-color: #10b981;">
+                <b>專案情境：</b> 模擬汽車進入隧道。當光線低於門檻，自動點亮 3 顆 WS2812 白光與繼電器；當出隧道光線恢復時自動關閉。
+            </div>
+            
+            <div class="input-wrapper">
+                <button id="autoModeBtn" class="btn btn-off" style="width: 100%; margin-bottom: 10px;" onclick="toggleAutoMode(this)">自動模式：已關閉</button>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label class="control-label" style="font-size: 0.8rem; margin-bottom: 4px;">🌙 天黑開啟門檻 (少於)</label>
+                        <input type="number" id="lowThreshold" value="800" placeholder="例如 800">
+                    </div>
+                    <div>
+                        <label class="control-label" style="font-size: 0.8rem; margin-bottom: 4px;">☀️ 天亮關閉門檻 (大於)</label>
+                        <input type="number" id="highThreshold" value="1000" placeholder="例如 1000">
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 5px;">
+                    目前系統狀態定位：<span id="autoStateLabel" style="font-weight: bold; color: var(--text-main);">未觸發</span>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
-            <h3 class="card-title"><span class="step-badge">Step 3</span> 💡 模組開關控制</h3>
+            <h3 class="card-title"><span class="step-badge">Step 4</span> 💡 模組開關控制</h3>
             <div class="edu-note">
                 <b>指令下達：</b> 點擊按鈕會觸發 <code>sendCmd()</code> 函式，將字串指令發送給硬體執行動作。
             </div>
@@ -234,8 +249,8 @@
                 <div class="control-item">
                     <span class="control-label">⚡ 高壓繼電器 <span class="pin-badge">OUT</span></span>
                     <div class="btn-group">
-                        <button class="btn btn-on" onclick="sendCmd('RELAY_ON')">ON</button>
-                        <button class="btn btn-off" onclick="sendCmd('RELAY_OFF')">OFF</button>
+                        <button class="btn btn-on" id="relayOnBtn" onclick="sendCmd('RELAY_ON')">ON</button>
+                        <button class="btn btn-off" id="relayOffBtn" onclick="sendCmd('RELAY_OFF')">OFF</button>
                     </div>
                 </div>
             </div>
@@ -243,7 +258,7 @@
         </div>
 
         <div class="card">
-            <h3 class="card-title"><span class="step-badge">Step 4</span> 🎨 進階週邊控制</h3>
+            <h3 class="card-title"><span class="step-badge">Step 5</span> 🎨 進階週邊控制</h3>
             <div class="edu-note">
                 <b>參數傳遞：</b> 讀取 HTML Input 欄位的值，打包後傳送給硬體進行顯示或 PWM 控制。
             </div>
@@ -257,20 +272,21 @@
                 <label class="control-label" style="margin-top: 10px; margin-bottom: -4px;">🌈 WS2812 幻彩燈條 (3顆)</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="color" id="rgbInput" value="#4f46e5">
-                    <button class="btn btn-primary" onclick="sendRGB()">套用燈光顏色</button>
+                    <button class="btn btn-primary" id="rgbSubmitBtn" onclick="sendRGB()">套用燈光顏色</button>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <script src="app.js"></script>
+    <script src="./static/app.js"></script>
     
     <script>
+        // 1. 原始狀態監聽邏輯
         const statusEl = document.getElementById("status");
         const observer = new MutationObserver(function() {
             const txt = statusEl.innerText;
-            statusEl.className = "status-badge"; // 重設樣式
+            statusEl.className = "status-badge"; 
             if (txt.includes("已就緒") || txt.includes("已連線")) {
                 statusEl.classList.add("status-success");
             } else if (txt.includes("搜尋") || txt.includes("連線中")) {
@@ -280,6 +296,76 @@
             }
         });
         observer.observe(statusEl, { childList: true, characterData: true, subtree: true });
+
+        // 2. 新增：智慧大燈核心控制邏輯 (不改動原有 app.js 功能)
+        let autoModeActive = false;
+        let currentAutoState = null; // 用來儲存當前狀態：'DARK'(天黑) 或 'LIGHT'(天亮)
+
+        function toggleAutoMode(btn) {
+            autoModeActive = !autoModeActive;
+            if (autoModeActive) {
+                btn.className = "btn btn-on";
+                btn.style.background = "#10b981";
+                btn.style.color = "white";
+                btn.innerText = "自動模式：運作中";
+                currentAutoState = null; // 重置狀態鎖，啟動時立刻做第一次檢查
+                checkLightLogic();
+            } else {
+                btn.className = "btn btn-off";
+                btn.style.background = "#f8fafc";
+                btn.style.color = "#64748b";
+                btn.innerText = "自動模式：已關閉";
+                document.getElementById("autoStateLabel").innerText = "未觸發";
+            }
+        }
+
+        function checkLightLogic() {
+            if (!autoModeActive) return;
+
+            // 讀取網頁画面的即時數值
+            const lightValue = parseInt(document.getElementById("light").innerText);
+            if (isNaN(lightValue)) return; 
+
+            // 讀取設定的上下限門檻
+            const lowThresh = parseInt(document.getElementById("lowThreshold").value) || 300;
+            const highThresh = parseInt(document.getElementById("highThreshold").value) || 600;
+
+            // 情境 A：天黑了 (少於設定值) 且 目前尚未觸發過天黑指令
+            if (lightValue <= lowThresh && currentAutoState !== 'DARK') {
+                currentAutoState = 'DARK';
+                document.getElementById("autoStateLabel").innerText = "🌙 天黑：開啟大燈與繼電器";
+                document.getElementById("autoStateLabel").style.color = "#b91c1c";
+
+                // 【修正】直接模擬人手去點擊網頁上的繼電器 ON 按鈕
+                const relayOnBtn = document.getElementById('relayOnBtn');
+                if (relayOnBtn) relayOnBtn.click();
+                rgbInput.value = "#ffffff"; // 設定為白光
+                setTimeout(()=>{
+					sendRGB();
+				},300);
+
+            } 
+            // 情境 B：天亮了 (大於設定值) 且 目前尚未觸發過天亮指令
+            else if (lightValue >= highThresh && currentAutoState !== 'LIGHT') {
+                currentAutoState = 'LIGHT';
+                document.getElementById("autoStateLabel").innerText = "☀️ 天亮：關閉大燈與繼電器";
+                document.getElementById("autoStateLabel").style.color = "#15803d";
+
+                // 【修正】直接模擬人手去點擊網頁上的繼電器 OFF 按鈕
+                const relayOffBtn = document.getElementById('relayOffBtn');
+                if (relayOffBtn) relayOffBtn.click();
+                rgbInput.value = "#000000"; // 設定為黑色（代表關燈）
+			    setTimeout(()=>{
+					sendRGB();
+				},300);
+                
+            }
+        }
+
+        // 3. 綁定監聽：每當 Step 2 中的光線數值 (#light) 被 app.js 改變時，自動觸發一次邏輯檢查
+        const lightValueEl = document.getElementById("light");
+        const lightObserver = new MutationObserver(checkLightLogic);
+        lightObserver.observe(lightValueEl, { childList: true, characterData: true, subtree: true });
 		
 		if(
 "serviceWorker" in navigator
